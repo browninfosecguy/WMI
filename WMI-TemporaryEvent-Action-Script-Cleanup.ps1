@@ -1,0 +1,1 @@
+﻿Unregister-Event -SourceIdentifier "WatchFolder2Email"
