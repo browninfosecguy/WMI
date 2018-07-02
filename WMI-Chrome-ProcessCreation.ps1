@@ -1,0 +1,1 @@
+﻿Register-WmiEvent -Query "select * from __instancecreationevent within 5 where targetinstance isa 'win32_process' and targetinstance.name like'%chrome%'" -Action {Write-Host "Hello"}
