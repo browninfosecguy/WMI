@@ -1,0 +1,1 @@
+﻿Get-CimInstance -classname cim_datafile -filter "extension='txt'"
