@@ -7,8 +7,7 @@ Unregister-Event Kity
 #>
 
 
-New-CimInstance -ClassName __IntervalTimerInstruction -Property @{TimerId="MyTimerId";
-IntervalBetweenEvents=[uint32]5000}
+New-CimInstance -ClassName __IntervalTimerInstruction -Property @{TimerId="MyTimerId";IntervalBetweenEvents=[uint32]5000}
 $test = 'SELECT * FROM __TimerEvent where TimerId="MyTimerId"'
 $action = {write-host Cat}
 Register-WmiEvent -Query $test -SourceIdentifier "Kity" -Action $action
