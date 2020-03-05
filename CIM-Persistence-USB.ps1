@@ -7,15 +7,17 @@ Author: @browninfosecguy
 
 Use Following commands to cleanup the Permenant Event subscription
 
-Get-WmiObject __EventFilter -namespace root\subscription -filter "name='myFilter'" | Remove-WmiObject
-Get-WmiObject NTEventLogEventConsumer -Namespace root\subscription -filter "name='USBLogging'" | Remove-WmiObject
-Get-WmiObject __FilterToConsumerBinding -Namespace root\subscription -Filter "Filter = ""__eventfilter.name='myFilter'""" | Remove-WmiObject
+Get-CimInstance -ClassName __EventFilter -namespace root\subscription -filter "name='myFilter'" | Remove-CimInstance
+Get-CimInstance -ClassName NTEventLogEventConsumer -Namespace root\subscription -filter "name='USBLogging'" | Remove-CimInstance
+Get-CimInstance -ClassName __FilterToConsumerBinding -Namespace root\subscription -Filter "Filter = ""__eventfilter.name='myFilter'""" | Remove-CimInstance
 
 #>
 
-$WQLQuery = 'SELECT * FROM __InstanceCreationEvent WITHIN 10 WHERE TargetInstance ISA "Win32_USBControllerDevice"' 
+#Requires -RunAsAdministrator
 
-$WMIFilterInstance = New-CimInstance -ClassName __EventFilter -Namespace "root\subscription" -Property @{Name="myFilter";
+$WQLQuery = 'SELECT * FROM __InstanceCreationEvent WITHIN 10 WHERE TargetInstance ISA "Win32_USBControllerDevice"' 
+try {
+    $WMIFilterInstance = New-CimInstance -ClassName __EventFilter -Namespace "root\subscription" -Property @{Name="myFilter";
                  EventNameSpace="root\cimv2";
                  QueryLanguage="WQL";
                  Query=$WQLQuery
@@ -29,3 +31,11 @@ $WMIEventConsumer = New-CimInstance -ClassName NTEventLogEventConsumer -Namespac
 $WMIWventBinding = New-CimInstance -ClassName __FilterToConsumerBinding -Namespace "root\subscription" -Property @{Filter = [Ref] $WMIFilterInstance;
                     Consumer = [Ref] $WMIEventConsumer
                     }
+}
+catch {
+
+    "Could not create permenant WMI Event subscription"
+    Get-CimInstance -ClassName __EventFilter -namespace root\subscription -filter "name='myFilter'" | Remove-CimInstance
+    Get-CimInstance -ClassName NTEventLogEventConsumer -Namespace root\subscription -filter "name='USBLogging'" | Remove-CimInstance
+    Get-CimInstance -ClassName __FilterToConsumerBinding -Namespace root\subscription -Filter "Filter = ""__eventfilter.name='myFilter'""" | Remove-CimInstance
+}
