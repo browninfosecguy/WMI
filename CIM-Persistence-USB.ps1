@@ -34,7 +34,7 @@ $WMIWventBinding = New-CimInstance -ClassName __FilterToConsumerBinding -Namespa
 }
 catch {
 
-    "Could not create permenant WMI Event subscription"
+    "Could not create permanent WMI Event subscription"
     Get-CimInstance -ClassName __EventFilter -namespace root\subscription -filter "name='myFilter'" | Remove-CimInstance
     Get-CimInstance -ClassName NTEventLogEventConsumer -Namespace root\subscription -filter "name='USBLogging'" | Remove-CimInstance
     Get-CimInstance -ClassName __FilterToConsumerBinding -Namespace root\subscription -Filter "Filter = ""__eventfilter.name='myFilter'""" | Remove-CimInstance
